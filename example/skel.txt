@@ -1,3 +1,6 @@
+Subject: test mail
+From: mymail@dot.com
+
 {名前} 様
 
 テストメールをお送りします。

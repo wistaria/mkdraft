@@ -1,25 +1,43 @@
 import openpyxl, getpass, imaplib, sys, time
 from email.message import EmailMessage
 
-if len(sys.argv) != 6:
-    print("usage: {} user excel subject sender body".format(sys.argv[0]))
+if len(sys.argv) != 4:
+    print("usage: {} user excel body".format(sys.argv[0]))
     sys.exit(1)
 
 server = 'imap.gmail.com'
 user = sys.argv[1]
 excel = sys.argv[2]
-subject = sys.argv[3]
-sender = sys.argv[4]
-mailtxt = sys.argv[5]
+# subject = sys.argv[3]
+# sender = sys.argv[4]
+mailtxt = sys.argv[3]
 
 print("server: {}".format(server))
 print("user: {}".format(user))
 print("excel file: {}".format(excel))
-print("subject: {}".format(subject))
-print("from: {}".format(sender))
 
+skel = ''
+sender = ''
+subject = ''
 with open(mailtxt, 'r') as f:
-    skel = f.read()
+    for line in f:
+        d = line.rstrip()
+        if (d.split(' ')[0] == 'From:'):
+            sender = d.replace('From: ', '', 1)
+        elif (d.split(' ')[0] == 'Subject:'):
+            subject = d.replace('Subject: ', '', 1)
+        else:
+            skel = skel + line
+if sender == '':
+    print('Error: From: not fund')
+    sys.exit(1)
+if subject == '':
+    print('Error: Subject: not fund')
+    sys.exit(1)
+
+print("---")
+print("Subject: {}".format(subject))
+print("From: {}".format(sender))
 print(skel)
 
 book = openpyxl.load_workbook(excel)
@@ -59,8 +77,8 @@ for r in range(2,sheet.max_row+1):
     if 'to' in format:
         print(format)
         msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = sender
+        msg['Subject'] = subject.format(**format)
+        msg['From'] = sender.format(**format)
         if 'name' in format:
             to = "{name} <{to}>".format(**format)
         else:
